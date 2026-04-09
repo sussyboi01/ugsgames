@@ -69,4 +69,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add zones.json games/
           git diff --cached --quiet || git commit -m "Auto: rename files and update zones.json"
+          git pull --rebase origin main   # ← add this line
           git push
