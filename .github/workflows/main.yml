@@ -1,0 +1,72 @@
+name: Rename files and generate zones.json
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Rename HTML files and generate zones.json
+        run: |
+          python3 << 'EOF'
+          import os
+          import json
+          import re
+          import shutil
+
+          def format_name(filename):
+              name = re.sub(r'\.html$', '', filename, flags=re.IGNORECASE)
+              for prefix in ['cl', 'cg', 'ug', 'gd']:
+                  if name.lower().startswith(prefix):
+                      name = name[len(prefix):]
+                      break
+              name = re.sub(r'[\-_]+', ' ', name)
+              name = re.sub(r'\((\d+)\)', r' \1', name)
+              name = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
+              name = re.sub(r'\s+', ' ', name).strip()
+              return name[0].upper() + name[1:] if name else name
+
+          html_files = sorted([
+              f for f in os.listdir('.')
+              if f.endswith('.html') and os.path.isfile(f)
+          ])
+
+          zones = {}
+
+          os.makedirs('games', exist_ok=True)
+
+          for index, original in enumerate(html_files):
+              game_id = index + 1
+              new_name = f"{game_id}.html"
+              shutil.copy2(original, f"games/{new_name}")
+              zones[str(game_id)] = {
+                  "id": game_id,
+                  "file": new_name,
+                  "originalFile": original,
+                  "name": format_name(original)
+              }
+              print(f"{original} -> games/{new_name} ({format_name(original)})")
+
+          with open('zones.json', 'w') as f:
+              json.dump(zones, f, indent=2)
+
+          print(f"\nDone! {len(zones)} games indexed.")
+          EOF
+
+      - name: Commit zones.json and renamed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add zones.json games/
+          git diff --cached --quiet || git commit -m "Auto: rename files and update zones.json"
+          git push
