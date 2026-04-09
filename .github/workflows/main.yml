@@ -1,5 +1,4 @@
 name: Rename files and generate zones.json
-
 on:
   push:
     branches: [main]
@@ -8,10 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -42,13 +39,12 @@ jobs:
           ])
 
           zones = {}
-
           os.makedirs('games', exist_ok=True)
 
           for index, original in enumerate(html_files):
               game_id = index + 1
               new_name = f"{game_id}.html"
-              shutil.copy2(original, f"games/{new_name}")
+              shutil.move(original, f"games/{new_name}")
               zones[str(game_id)] = {
                   "id": game_id,
                   "file": new_name,
@@ -67,7 +63,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add zones.json games/
+          git add -A
           git diff --cached --quiet || git commit -m "Auto: rename files and update zones.json"
-          git pull --rebase origin main   # ← add this line
+          git pull --rebase origin main
           git push
