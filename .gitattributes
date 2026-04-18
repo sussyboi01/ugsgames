@@ -1,8 +1,0 @@
-# Auto detect text files and perform LF normalization
-* text=auto
-*.html filter=lfs diff=lfs merge=lfs -text
-clColorboxmustard.html filter=lfs diff=lfs merge=lfs -text
-clgdwaveover100mb.html filter=lfs diff=lfs merge=lfs -text
-clprecisionclient.html filter=lfs diff=lfs merge=lfs -text
-clundertale-gameboy(1).html filter=lfs diff=lfs merge=lfs -text
-clundertale-gameboy.html filter=lfs diff=lfs merge=lfs -text
